@@ -101,6 +101,10 @@ public final class JsonPatch
      */
     private final List<JsonPatchOperation> operations;
 
+    public List<JsonPatchOperation> getOperations() {
+        return operations;
+    }
+
     /**
      * Package-visible constructor
      *

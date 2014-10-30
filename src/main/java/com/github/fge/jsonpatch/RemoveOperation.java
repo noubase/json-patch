@@ -43,10 +43,12 @@ import java.io.IOException;
 public final class RemoveOperation
     extends JsonPatchOperation
 {
+    public final static String OP = "remove";
+
     @JsonCreator
     public RemoveOperation(@JsonProperty("path") final JsonPointer path)
     {
-        super("remove", path);
+        super(OP, path);
     }
 
     @Override
