@@ -43,11 +43,13 @@ import com.github.fge.jackson.jsonpointer.JsonPointer;
 public final class CopyOperation
     extends DualPathOperation
 {
+    public final static String OP = "copy";
+
     @JsonCreator
     public CopyOperation(@JsonProperty("from") final JsonPointer from,
         @JsonProperty("path") final JsonPointer path)
     {
-        super("copy", from, path);
+        super(OP, from, path);
     }
 
     @Override

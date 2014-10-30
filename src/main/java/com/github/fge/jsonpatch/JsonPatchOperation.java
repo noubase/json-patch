@@ -64,12 +64,16 @@ public abstract class JsonPatchOperation
 
     protected final String op;
 
+    public String getOp() {
+        return op;
+    }
+
     /*
-     * Note: no need for a custom deserializer, Jackson will try and find a
-     * constructor with a single string argument and use it.
-     *
-     * However, we need to serialize using .toString().
-     */
+         * Note: no need for a custom deserializer, Jackson will try and find a
+         * constructor with a single string argument and use it.
+         *
+         * However, we need to serialize using .toString().
+         */
     protected final JsonPointer path;
 
     /**
