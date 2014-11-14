@@ -38,6 +38,10 @@ public abstract class DualPathOperation
     @JsonSerialize(using = ToStringSerializer.class)
     protected final JsonPointer from;
 
+    public JsonPointer getFrom() {
+        return from;
+    }
+
     /**
      * Protected constructor
      *
