@@ -76,6 +76,10 @@ public abstract class JsonPatchOperation
          */
     protected final JsonPointer path;
 
+    public JsonPointer getPath() {
+        return path;
+    }
+
     /**
      * Constructor
      *
