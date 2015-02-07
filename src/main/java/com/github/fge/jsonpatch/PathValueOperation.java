@@ -38,6 +38,10 @@ public abstract class PathValueOperation
     @JsonSerialize
     protected final JsonNode value;
 
+    public JsonNode getValue() {
+        return value;
+    }
+
     /**
      * Protected constructor
      *
