@@ -1,3 +1,9 @@
+# This project is looking for a new maintainer
+
+I don't have the time, and worse, the incentive, to maintain this project anymore.
+
+If you are interested in taking over, please [contact me personally](mailto:fgaliegue@gmail.com).
+
 ## Read me first
 
 This project, as of version 1.4, is licensed under both LGPLv3 and ASL 2.0. See
@@ -17,11 +23,9 @@ Its features are:
 * full support for RFC 6902 operations, including `test`;
 * JSON "diff" (RFC 6902 only) with operation factorization.
 
-The JSON diff implementation is courtesy of [Randy Watler](https://github.com/rwatler).
-
 ## Versions
 
-The current version is **1.7**. See file `RELEASE-NOTES.md` for details.
+The current version is **1.9**. See file `RELEASE-NOTES.md` for details.
 
 ## Using it in your project
 
@@ -113,13 +117,17 @@ final JsonNode patched = patch.apply(orig);
 
 ### JSON diff
 
-The main class is `JsonDiff`. It returns the patch as a `JsonNode`. Sample usage:
+The main class is `JsonDiff`. It returns the patch as a `JsonPatch` or as a `JsonNode`. Sample usage:
 
 ```java
-final JsonNode patchNode = JsonDiff.asJson(firstNode, secondNode);
+final JsonPatch patch = JsonDiff.asJsonPatch(source, target);
+final JsonNode patchNode = JsonDiff.asJson(source, target);
 ```
 
-You can then use the generated `JsonNode` to build a patch using the code sample above.
+**Important note**: the API offers **no guarantee at all** about patch "reuse";
+that is, the generated patch is only guaranteed to safely transform the given
+source to the given target. Do not expect it to give the result you expect on
+another source/target pair!
 
 ### JSON Merge Patch
 

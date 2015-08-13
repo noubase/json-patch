@@ -19,145 +19,86 @@
 
 package com.github.fge.jsonpatch.mergepatch;
 
-import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.JsonSerializable;
-import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.fge.jackson.JacksonUtils;
-import com.github.fge.jackson.NodeType;
+import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
 import com.github.fge.jsonpatch.JsonPatchMessages;
 import com.github.fge.msgsimple.bundle.MessageBundle;
 import com.github.fge.msgsimple.load.MessageBundles;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.IOException;
-import java.util.Iterator;
-import java.util.Map;
 
 /**
- * Implementation of <a href="http://tools.ietf.org/html/draft-ietf-appsawg-json-merge-patch-02">JSON merge patch</a>
+ * Implementation of JSON Merge Patch (RFC 7386)
  *
- * <p>Unlike JSON Patch, JSON Merge Patch only applies to JSON Objects or JSON
- * arrays.</p>
+ * <p><a href="http://tools.ietf.org/html/rfc7386">JSON Merge Patch</a> is a
+ * "toned down" version of JSON Patch. However, it covers a very large number of
+ * use cases for JSON value modifications; its focus is mostly on patching
+ * JSON Objects, which are by far the most common type of JSON texts exchanged
+ * on the Internet.</p>
+ *
+ * <p>Applying a JSON Merge Patch is defined by a single, pseudo code function
+ * as follows (quoted from the RFC; indentation fixed):</p>
+ *
+ * <pre>
+ *     define MergePatch(Target, Patch):
+ *         if Patch is an Object:
+ *             if Target is not an Object:
+ *                 Target = {} # Ignore the contents and set it to an empty Object
+ *             for each Name/Value pair in Patch:
+ *                 if Value is null:
+ *                     if Name exists in Target:
+ *                         remove the Name/Value pair from Target
+ *                 else:
+ *                     Target[Name] = MergePatch(Target[Name], Value)
+ *             return Target
+ *         else:
+ *             return Patch
+ * </pre>
  */
+@ParametersAreNonnullByDefault
 @JsonDeserialize(using = JsonMergePatchDeserializer.class)
 public abstract class JsonMergePatch
     implements JsonSerializable
 {
-    protected static final JsonNodeFactory FACTORY = JacksonUtils.nodeFactory();
-
+    private static final ObjectMapper MAPPER = JacksonUtils.newMapper();
     protected static final MessageBundle BUNDLE
         = MessageBundles.getBundle(JsonPatchMessages.class);
 
-    protected final JsonNode origPatch;
-
     /**
-     * Protected constructor
+     * Build an instance from a JSON input
      *
-     * <p>Only necessary for serialization purposes. The patching process
-     * itself never requires the full node to operate.</p>
-     *
-     * @param node the original patch node
+     * @param node the input
+     * @return a JSON Merge Patch instance
+     * @throws JsonPatchException failed to deserialize
+     * @throws NullPointerException node is null
      */
-    protected JsonMergePatch(final JsonNode node)
-    {
-        origPatch = node;
-    }
-
-    public abstract JsonNode apply(final JsonNode input)
-        throws JsonPatchException;
-
-    public static JsonMergePatch fromJson(final JsonNode input)
+    public static JsonMergePatch fromJson(final JsonNode node)
         throws JsonPatchException
     {
-        BUNDLE.checkNotNull(input, "jsonPatch.nullInput");
-        BUNDLE.checkArgumentPrintf(input.isContainerNode(),
-            "mergePatch.notContainer", NodeType.getNodeType(input));
-
-        return input.isArray() ? new ArrayMergePatch(input)
-            : new ObjectMergePatch(input);
+        BUNDLE.checkNotNull(node, "jsonPatch.nullInput");
+        try {
+            return MAPPER.readValue(node.traverse(), JsonMergePatch.class);
+        } catch (IOException e) {
+            throw new JsonPatchException(
+                BUNDLE.getMessage("jsonPatch.deserFailed"), e);
+        }
     }
 
     /**
-     * Clear "null values" from a JSON value
+     * Apply the patch to a given JSON value
      *
-     * <p>Non container values are unchanged. For arrays, null elements are
-     * removed. From objects, members whose values are null are removed.</p>
-     *
-     * <p>This method is recursive, therefore arrays within objects, or objects
-     * within arrays, or arrays within arrays etc are also affected.</p>
-     *
-     * @param node the original JSON value
-     * @return a JSON value without null values (see description)
+     * @param input the value to patch
+     * @return the patched value
+     * @throws JsonPatchException never thrown; only for consistency with
+     * {@link JsonPatch}
+     * @throws NullPointerException value is null
      */
-    protected static JsonNode clearNulls(final JsonNode node)
-    {
-        if (!node.isContainerNode())
-            return node;
-
-        return node.isArray() ? clearNullsFromArray(node)
-            : clearNullsFromObject(node);
-    }
-
-    private static JsonNode clearNullsFromArray(final JsonNode node)
-    {
-        final ArrayNode ret = FACTORY.arrayNode();
-
-        /*
-         * Cycle through array elements. If the element is a null node itself,
-         * skip it. Otherwise, add a "cleaned up" element to the result.
-         */
-        for (final JsonNode element: node)
-            if (!element.isNull())
-                ret.add(clearNulls(element));
-
-        return ret;
-    }
-
-    private static JsonNode clearNullsFromObject(final JsonNode node)
-    {
-        final ObjectNode ret = FACTORY.objectNode();
-        final Iterator<Map.Entry<String, JsonNode>> iterator
-            = node.fields();
-
-        Map.Entry<String, JsonNode> entry;
-        JsonNode value;
-
-        /*
-         * When faces with an object, cycle through this object's entries.
-         *
-         * If the value of the entry is a JSON null, don't include it in the
-         * result. If not, include a "cleaned up" value for this key instead of
-         * the original element.
-         */
-        while (iterator.hasNext()) {
-            entry = iterator.next();
-            value = entry.getValue();
-            if (!value.isNull())
-                ret.put(entry.getKey(), clearNulls(value));
-        }
-
-        return ret;
-    }
-
-    @Override
-    public final void serialize(final JsonGenerator jgen,
-        final SerializerProvider provider)
-        throws IOException
-    {
-        jgen.writeTree(origPatch);
-    }
-
-    @Override
-    public final void serializeWithType(final JsonGenerator jgen,
-        final SerializerProvider provider, final TypeSerializer typeSer)
-        throws IOException
-    {
-        serialize(jgen, provider);
-    }
+    public abstract JsonNode apply(final JsonNode input)
+        throws JsonPatchException;
 }

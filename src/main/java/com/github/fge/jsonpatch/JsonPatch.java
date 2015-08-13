@@ -28,7 +28,6 @@ import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
 import com.github.fge.jackson.JacksonUtils;
 import com.github.fge.msgsimple.bundle.MessageBundle;
 import com.github.fge.msgsimple.load.MessageBundles;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 
 import java.io.IOException;
@@ -106,16 +105,15 @@ public final class JsonPatch
     }
 
     /**
-     * Package-visible constructor
+     * Constructor
      *
-     * <p>Visible only for testing purposes. Also used for deserialization.</p>
+     * <p>Normally, you should never have to use it.</p>
      *
      * @param operations the list of operations for this patch
      * @see JsonPatchOperation
      */
     @JsonCreator
-    @VisibleForTesting
-    JsonPatch(final List<JsonPatchOperation> operations)
+    public JsonPatch(final List<JsonPatchOperation> operations)
     {
         this.operations = ImmutableList.copyOf(operations);
     }
