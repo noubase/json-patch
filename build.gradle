@@ -43,8 +43,8 @@ apply(plugin: "osgi");
 apply(plugin: "idea");
 apply(plugin: "eclipse");
 
-group = "com.github.fge";
-version = "1.10-SNAPSHOT";
+group = "com.egocube";
+version = "1.10";
 description = "JSON Patch (RFC 6902) and JSON Merge Patch (RFC 7386) implementation in Java";
 sourceCompatibility = "1.6";
 targetCompatibility = "1.6"; // defaults to sourceCompatibility
@@ -156,26 +156,10 @@ task checkSigningRequirements << {
 }
 
 uploadArchives {
-    dependsOn(checkSigningRequirements);
+    //dependsOn(checkSigningRequirements);
     repositories {
         mavenDeployer {
-            beforeDeployment {
-                MavenDeployment deployment -> signing.signPom(deployment);
-            }
-
-            repository(url: "${sonatypeStaging}") {
-                authentication(
-                    userName: project.properties["sonatypeUsername"],
-                    password: project.properties["sonatypePassword"]
-                );
-            }
-
-            snapshotRepository(url: "${sonatypeSnapshots}") {
-                authentication(
-                    userName: project.properties["sonatypeUsername"],
-                    password: project.properties["sonatypePassword"]
-                );
-            }
+            repository(url: "file:~/.m2/")
         }
     }
 }

@@ -1,0 +1,16 @@
+{
+    "errors": [
+        {
+            "op": { "op": "append", "path": "/x/y", "value": "1" },
+            "node": { "x": {} },
+            "message": "jsonPatch.noSuchPath"
+        }
+    ],
+    "ops": [
+        {
+            "op": { "op": "append", "path": "test", "value": "World!" },
+            "node": { "x": { "test": "Hello "} },
+            "expected": {"text": "Hello World!"}
+        }
+    ]
+}
