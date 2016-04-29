@@ -47,10 +47,10 @@ public final class AppendOperationTest
         Map<String, String> map = new HashMap<String, String>();
         map.put("test", "Hello ");
         JsonPatchOperation operation = new AppendOperation(
-                new JsonPointer("/test"), TextNode.valueOf(" World!"));
+                new JsonPointer("/test"), TextNode.valueOf("World!"));
         JsonPatch patch = new JsonPatch(ImmutableList.of(operation));
         Map value = mapper.treeToValue(patch.apply(mapper.valueToTree(map)), HashMap.class);
 
-        assertEquals("Hello World!", value.get("test"));
+        assertEquals(value.get("test"), "Hello World!");
     }
 }

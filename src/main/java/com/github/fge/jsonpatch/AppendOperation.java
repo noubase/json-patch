@@ -60,7 +60,7 @@ public final class AppendOperation
         final String rawToken = Iterables.getLast(path).getToken().getRaw();
         if (parent.isObject()) {
             ObjectNode p = (ObjectNode) parent;
-            p.put(rawToken, p.get(rawToken) + part);
+            p.put(rawToken, p.get(rawToken).asText() + part);
         }
         return ret;
     }

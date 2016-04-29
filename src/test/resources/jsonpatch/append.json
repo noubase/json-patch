@@ -8,9 +8,9 @@
     ],
     "ops": [
         {
-            "op": { "op": "append", "path": "test", "value": "World!" },
-            "node": { "x": { "test": "Hello "} },
-            "expected": {"text": "Hello World!"}
+            "op": { "op": "append", "path": "/test", "value": "World!" },
+            "node": { "test": "Hello "} ,
+            "expected": {"test": "Hello World!"}
         }
     ]
 }
