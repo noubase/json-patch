@@ -18,16 +18,27 @@
  */
 
 buildscript {
+
+    dependencies {
+        classpath(group: "org.springframework.build.gradle", name: "propdeps-plugin", version: "0.0.7");
+        classpath(group: "org.jfrog.buildinfo", name: "build-info-extractor-gradle", version: "latest.release");
+    }
+
     repositories {
         maven {
-            url "http://repo.springsource.org/plugins-release";
+            url "http://repo.springsource.org/plugins-release"
+        }
+        maven {
+            url 'http://167.114.249.147:8081/artifactory/libs-releases'
+            credentials {
+                username = "rshuper"
+                password = "AP97fDGCJUC1F4LmnsgTzgLV5QKEMDaXos2Gr"
+            }
+            name = "maven-main-cache"
         }
     }
-    dependencies {
-        classpath(group: "org.springframework.build.gradle",
-            name: "propdeps-plugin", version: "0.0.7");
-    }
 };
+
 
 configure(allprojects) {
     apply(plugin: "propdeps");
@@ -43,12 +54,38 @@ apply(plugin: "osgi");
 apply(plugin: "idea");
 apply(plugin: "eclipse");
 
-group = "com.egocube";
-version = "1.10";
-description = "JSON Patch (RFC 6902) and JSON Merge Patch (RFC 7386) implementation in Java";
-sourceCompatibility = "1.6";
-targetCompatibility = "1.6"; // defaults to sourceCompatibility
+apply plugin: 'scala'
+apply plugin: 'maven-publish'
+apply plugin: "com.jfrog.artifactory"
 
+group = "com.egocube";
+version = "1.10.1";
+description = "JSON Patch (RFC 6902) and JSON Merge Patch (RFC 7386) implementation in Java";
+sourceCompatibility = "1.8";
+targetCompatibility = "1.8"; // defaults to sourceCompatibility
+
+artifactory {
+    contextUrl = "http://167.114.249.147:8081/artifactory"
+    publish {
+        repository {
+            repoKey = 'libs-releases'
+            username = "rshuper"
+            password = "AP97fDGCJUC1F4LmnsgTzgLV5QKEMDaXos2Gr"
+            maven = true
+        }
+        defaults {
+            publications ('mavenJava')
+        }
+    }
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
+}
 /*
  * List of dependencies
  */
@@ -80,6 +117,7 @@ javadoc.options.links("http://fge.github.io/jackson-coreutils/");
  */
 repositories {
     mavenCentral();
+    jcenter();
 }
 
 /*
@@ -133,15 +171,15 @@ task pom << {
  * SIGNING
  */
 
-project.ext {
+/*project.ext {
     gitrwscm = sprintf("git@github.com:fge/%s", name);
     gitroscm = sprintf("https://github.com/fge/%s.git", name);
     projectURL = sprintf("https://github.com/fge/%s", name);
     sonatypeStaging = "https://oss.sonatype.org/service/local/staging/deploy/maven2/";
     sonatypeSnapshots = "https://oss.sonatype.org/content/repositories/snapshots/";
-};
+};*/
 
-task checkSigningRequirements << {
+/*task checkSigningRequirements << {
     def requiredProperties = [ "sonatypeUsername", "sonatypePassword" ];
     def noDice = false;
     requiredProperties.each {
@@ -153,21 +191,21 @@ task checkSigningRequirements << {
     if (noDice)
         throw new IllegalStateException("missing required properties for " +
             "upload");
-}
+}*/
 
-uploadArchives {
-    //dependsOn(checkSigningRequirements);
-    repositories {
-        mavenDeployer {
-            repository(url: "file:~/.m2/")
-        }
-    }
-}
+//uploadArchives {
+//    //dependsOn(checkSigningRequirements);
+//    repositories {
+//        mavenDeployer {
+//            repository(url: "file:~/.m2/")
+//        }
+//    }
+//}
 
 /*
  * Configure pom.xml on install, uploadArchives
  */
-[
+/*[
     install.repositories.mavenInstaller,
     uploadArchives.repositories.mavenDeployer
 ]*.pom*.whenConfigured { pom ->
@@ -210,5 +248,5 @@ ext.forRelease = !version.endsWith("-SNAPSHOT");
 signing {
     required { forRelease && gradle.taskGraph.hasTask("uploadArchives") };
     sign configurations.archives;
-}
+}*/
 

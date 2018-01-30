@@ -28,10 +28,8 @@ import com.google.common.collect.Iterables;
 
 /**
  * JSON Patch {@code append} operation
- * <p>
  * <p>For this operation, {@code path} points to the value to append, and
  * {@code value} is the value should be appended.</p>
- * <p>
  * <p>It is an error condition if {@code path} does not point to an actual JSON
  * value.</p>
  */
